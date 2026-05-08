@@ -1,0 +1,68 @@
+.difficulty-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1rem;
+  min-height: 100vh;
+}
+
+.difficulty-page h1 {
+  margin-bottom: 2rem;
+}
+
+.difficulty-cards {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.difficulty-card {
+  width: 240px;
+  padding: 1.5rem;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid transparent;
+}
+
+.difficulty-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.difficulty-easy {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+}
+
+.difficulty-medium {
+  background: #fef9c3;
+  border-color: #fbbf24;
+}
+
+.difficulty-hard {
+  background: #fee2e2;
+  border-color: #f87171;
+}
+
+.difficulty-card h2 {
+  margin: 0 0 0.5rem;
+}
+
+.difficulty-desc {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.difficulty-info {
+  list-style: none;
+  padding: 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.difficulty-info li {
+  margin-bottom: 0.3rem;
+}
