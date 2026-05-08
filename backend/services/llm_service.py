@@ -1,12 +1,13 @@
 import json
 import requests
-from config import API_BASE_URL, API_KEY, LLM_MODEL, REQUEST_TIMEOUT
+from config import GEMINI_API_BASE_URL, GEMINI_API_KEY, LLM_MODEL, REQUEST_TIMEOUT
 
 
 def _chat(messages, temperature=0.8, json_mode=True):
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {API_KEY}",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {GEMINI_API_KEY}",
     }
     payload = {
         "model": LLM_MODEL,
@@ -18,7 +19,7 @@ def _chat(messages, temperature=0.8, json_mode=True):
         payload["response_format"] = {"type": "json_object"}
 
     resp = requests.post(
-        f"{API_BASE_URL}/chat/completions",
+        f"{GEMINI_API_BASE_URL}/chat/completions",
         headers=headers,
         json=payload,
         timeout=REQUEST_TIMEOUT,

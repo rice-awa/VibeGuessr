@@ -1,5 +1,5 @@
 import requests
-from config import API_BASE_URL, API_KEY, IMAGE_MODEL, IMAGE_SIZE, REQUEST_TIMEOUT
+from config import OPENAI_API_BASE_URL, OPENAI_API_KEY, IMAGE_MODEL, IMAGE_SIZE, REQUEST_TIMEOUT
 
 
 def generate_image(visual_desc, blur_prompt, image_strategy):
@@ -12,7 +12,8 @@ def generate_image(visual_desc, blur_prompt, image_strategy):
 
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {API_KEY}",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
     }
     payload = {
         "model": IMAGE_MODEL,
@@ -22,7 +23,7 @@ def generate_image(visual_desc, blur_prompt, image_strategy):
     }
 
     resp = requests.post(
-        f"{API_BASE_URL}/images/generations",
+        f"{OPENAI_API_BASE_URL}/images/generations",
         headers=headers,
         json=payload,
         timeout=60,
@@ -43,7 +44,8 @@ def generate_clear_image(visual_desc):
 
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {API_KEY}",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
     }
     payload = {
         "model": IMAGE_MODEL,
@@ -53,7 +55,7 @@ def generate_clear_image(visual_desc):
     }
 
     resp = requests.post(
-        f"{API_BASE_URL}/images/generations",
+        f"{OPENAI_API_BASE_URL}/images/generations",
         headers=headers,
         json=payload,
         timeout=60,

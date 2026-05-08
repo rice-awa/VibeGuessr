@@ -3,12 +3,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_BASE_URL = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
-API_KEY = os.getenv("API_KEY", "")
+GEMINI_API_BASE_URL = os.getenv("GEMINI_API_BASE_URL", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+LLM_MODEL = os.getenv("LLM_MODEL", "gemini-2.5-flash")
 
-LLM_MODEL = "gemini-2.5-flash"
-IMAGE_MODEL = "gpt-image-2-all"
-IMAGE_SIZE = "1024x1024"
+OPENAI_API_BASE_URL = os.getenv("OPENAI_API_BASE_URL", "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+IMAGE_MODEL = os.getenv("IMAGE_MODEL", "gpt-image-2-all")
+IMAGE_SIZE = os.getenv("IMAGE_SIZE", "1024x1024")
 
 REQUEST_TIMEOUT = 30
 MAX_RETRIES = 1
