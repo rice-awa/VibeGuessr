@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm install *)",
       "Bash(npx vite *)",
-      "Bash(python -m venv venv)"
+      "Bash(python -m venv venv)",
+      "Bash(npm run *)"
     ]
   }
 }
