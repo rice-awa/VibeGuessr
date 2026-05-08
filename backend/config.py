@@ -1,0 +1,49 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_BASE_URL = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
+API_KEY = os.getenv("API_KEY", "")
+
+LLM_MODEL = "gemini-2.5-flash"
+IMAGE_MODEL = "gpt-image-2-all"
+IMAGE_SIZE = "1024x1024"
+
+REQUEST_TIMEOUT = 30
+MAX_RETRIES = 1
+
+DIFFICULTY_CONFIG = {
+    "easy": {
+        "label": "简单",
+        "word_scope": "常见动物、食物、日用品",
+        "hints": 3,
+        "time_limit": 60,
+        "base_score": 10,
+        "blur_prompt": "slightly blurry, soft focus, the outline is recognizable",
+        "image_strategy": "generate a complete image based on the visual description",
+    },
+    "medium": {
+        "label": "中等",
+        "word_scope": "职业、运动、地标建筑",
+        "hints": 2,
+        "time_limit": 45,
+        "base_score": 20,
+        "blur_prompt": "blurry, out of focus, abstract, partial close-up or unusual angle",
+        "image_strategy": "generate a partial close-up or non-typical angle",
+    },
+    "hard": {
+        "label": "困难",
+        "word_scope": "抽象概念、成语、复合词汇",
+        "hints": 1,
+        "time_limit": 30,
+        "base_score": 40,
+        "blur_prompt": "very blurry, heavily abstracted, minimal detail, almost unrecognizable",
+        "image_strategy": "extract only abstract visual elements",
+    },
+}
+
+QUESTIONS_PER_GAME = 10
+MAX_GUESSES_PER_QUESTION = 3
+HINT_SCORE_PENALTY = 0.3
+STREAK_BONUSES = {3: 0.10, 5: 0.20, 10: 0.50}
