@@ -1,6 +1,6 @@
 import json
 import requests
-from config import GEMINI_API_BASE_URL, GEMINI_API_KEY, LLM_MODEL, REQUEST_TIMEOUT
+from config import GEMINI_API_BASE_URL, GEMINI_API_KEY, LLM_MODEL, REQUEST_TIMEOUT, MAX_RETRIES
 
 
 def _chat(messages, temperature=0.8, json_mode=True):
@@ -18,16 +18,24 @@ def _chat(messages, temperature=0.8, json_mode=True):
     if json_mode:
         payload["response_format"] = {"type": "json_object"}
 
-    resp = requests.post(
-        f"{GEMINI_API_BASE_URL}/chat/completions",
-        headers=headers,
-        json=payload,
-        timeout=REQUEST_TIMEOUT,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    content = data["choices"][0]["message"]["content"]
-    return content
+    last_error = None
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            resp = requests.post(
+                f"{GEMINI_API_BASE_URL}/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=REQUEST_TIMEOUT,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            content = data["choices"][0]["message"]["content"]
+            return content
+        except (requests.Timeout, requests.ConnectionError) as e:
+            last_error = e
+            if attempt >= MAX_RETRIES:
+                raise
+    raise last_error
 
 
 def generate_word(prompt_text):

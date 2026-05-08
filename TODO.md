@@ -12,36 +12,36 @@
 ## 阶段二：后端核心 API
 
 ### 2.1 基础架构
-- [ ] Flask 应用入口 & 路由注册（app.py）
-- [ ] 配置管理（config.py：API 密钥、难度参数表）
-- [ ] SQLite 数据库初始化 & 数据模型（game.py）
-- [ ] 游戏会话管理（session_id 生成与存储）
+- [x] Flask 应用入口 & 路由注册（app.py）
+- [x] 配置管理（config.py：API 密钥、难度参数表）
+- [x] SQLite 数据库初始化 & 数据模型（game.py）
+- [x] 游戏会话管理（session_id 生成与存储）
 
 ### 2.2 LLM 服务（llm_service.py）
-- [ ] Gemini Chat API 调用封装（OpenAI 兼容格式）
-- [ ] 出词 Prompt 模板（word_gen.py）：按难度生成关键词 + 视觉描述 + 提示语
-- [ ] 判分 Prompt 模板（judge.py）：结构化判定答案匹配度
-- [ ] 知识卡片生成：猜对后返回趣味冷知识
+- [x] Gemini Chat API 调用封装（OpenAI 兼容格式）
+- [x] 出词 Prompt 模板（word_gen.py）：按难度生成关键词 + 视觉描述 + 提示语
+- [x] 判分 Prompt 模板（judge.py）：结构化判定答案匹配度
+- [x] 知识卡片生成：猜对后返回趣味冷知识
 
 ### 2.3 图片服务（image_service.py）
-- [ ] GPT-image-2 调用封装（模糊图 / 清晰图）
-- [ ] 不同难度的 Prompt 策略（模糊程度控制）
-- [ ] 图片 Base64 / URL 响应处理
+- [x] GPT-image-2 调用封装（模糊图 / 清晰图）
+- [x] 不同难度的 Prompt 策略（模糊程度控制）
+- [x] 图片 Base64 / URL 响应处理
 
 ### 2.4 游戏逻辑（game_service.py）
-- [ ] 得分计算（基础分 × score_ratio × 时间奖励 × 提示惩罚）
-- [ ] 连续答对加成（3题+10%、5题+20%、10题+50%）
-- [ ] 已出词去重（上下文传递）
-- [ ] 每题最多 3 次作答限制
+- [x] 得分计算（基础分 × score_ratio × 时间奖励 × 提示惩罚）
+- [x] 连续答对加成（3题+10%、5题+20%、10题+50%）
+- [x] 已出词去重（上下文传递）
+- [x] 每题最多 3 次作答限制
 
 ### 2.5 API 端点
-- [ ] `POST /api/game/start` — 开始新游戏
-- [ ] `POST /api/game/next` — 获取下一题（关键词 + 模糊图片）
-- [ ] `POST /api/game/guess` — 提交答案，返回判分
-- [ ] `POST /api/game/hint` — 获取文字提示
-- [ ] `POST /api/game/reveal` — 猜对后获取清晰图 + 知识卡片
-- [ ] `GET /api/game/result` — 本局结算数据
-- [ ] 错误处理 & 超时重试（15 秒超时、重试 1 次、降级跳过）
+- [x] `POST /api/game/start` — 开始新游戏
+- [x] `POST /api/game/next` — 获取下一题（关键词 + 模糊图片）
+- [x] `POST /api/game/guess` — 提交答案，返回判分
+- [x] `POST /api/game/hint` — 获取文字提示
+- [x] `POST /api/game/reveal` — 猜对后获取清晰图 + 知识卡片
+- [x] `GET /api/game/result` — 本局结算数据
+- [x] 错误处理 & 超时重试（15 秒超时、重试 1 次、降级跳过）
 
 ---
 

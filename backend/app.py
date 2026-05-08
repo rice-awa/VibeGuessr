@@ -2,12 +2,15 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 from config import DIFFICULTY_CONFIG, MAX_RETRIES
+from models.game import init_db
 from services import game_service, llm_service, image_service
 from prompts.word_gen import build_word_gen_prompt
 from prompts.judge import build_judge_prompt, build_knowledge_card_prompt
 
 app = Flask(__name__)
 CORS(app)
+
+init_db()
 
 
 def _error(msg, status=400):
@@ -107,14 +110,18 @@ def guess():
     if not game_service.can_guess(session):
         return _error("Max guesses reached for this question")
 
-    session.guesses_current += 1
+    game_service.use_guess(session)
     keyword = session.current_question["keyword"]
 
     prompt = build_judge_prompt(keyword, answer)
     try:
         judge_result = llm_service.judge_answer(prompt)
     except Exception:
-        return _error("Failed to judge answer", 502)
+        judge_result = {
+            "match": "wrong",
+            "score_ratio": 0,
+            "feedback": "AI 裁判暂时不在线，本次判定为未命中",
+        }
 
     score_ratio = float(judge_result.get("score_ratio", 0))
     score = game_service.calculate_score(session, score_ratio)
@@ -150,9 +157,7 @@ def get_hint():
     if not game_service.can_get_hint(session):
         return _error("No hints remaining")
 
-    session.hints_used_current += 1
-    hint_key = f"hint{session.hints_used_current}"
-    hint_text = session.current_question.get(hint_key, "暂无更多提示")
+    hint_text = game_service.use_hint(session)
 
     return jsonify({
         "hint": hint_text,

@@ -12,8 +12,11 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 IMAGE_MODEL = os.getenv("IMAGE_MODEL", "gpt-image-2-all")
 IMAGE_SIZE = os.getenv("IMAGE_SIZE", "1024x1024")
 
-REQUEST_TIMEOUT = 30
+REQUEST_TIMEOUT = 15
+IMAGE_REQUEST_TIMEOUT = 60
 MAX_RETRIES = 1
+
+DB_PATH = os.path.join(os.path.dirname(__file__), "game.db")
 
 DIFFICULTY_CONFIG = {
     "easy": {

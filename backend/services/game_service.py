@@ -1,5 +1,5 @@
-import uuid
 import time
+
 from config import (
     DIFFICULTY_CONFIG,
     QUESTIONS_PER_GAME,
@@ -7,47 +7,19 @@ from config import (
     HINT_SCORE_PENALTY,
     STREAK_BONUSES,
 )
-
-_sessions = {}
-
-
-class GameSession:
-    def __init__(self, difficulty):
-        self.session_id = str(uuid.uuid4())
-        self.difficulty = difficulty
-        self.config = DIFFICULTY_CONFIG[difficulty]
-        self.used_words = []
-        self.current_question = None
-        self.question_index = 0
-        self.total_score = 0
-        self.results = []
-        self.streak = 0
-        self.hints_used_current = 0
-        self.guesses_current = 0
-        self.question_start_time = None
-        self.created_at = time.time()
-
-    def to_dict(self):
-        return {
-            "session_id": self.session_id,
-            "difficulty": self.difficulty,
-            "question_index": self.question_index,
-            "total_questions": QUESTIONS_PER_GAME,
-            "total_score": round(self.total_score, 1),
-            "streak": self.streak,
-        }
+from models.game import GameSession, save_session, load_session
 
 
 def create_session(difficulty):
     if difficulty not in DIFFICULTY_CONFIG:
         raise ValueError(f"Invalid difficulty: {difficulty}")
     session = GameSession(difficulty)
-    _sessions[session.session_id] = session
+    save_session(session)
     return session
 
 
 def get_session(session_id):
-    session = _sessions.get(session_id)
+    session = load_session(session_id)
     if not session:
         raise KeyError(f"Session not found: {session_id}")
     return session
@@ -60,6 +32,19 @@ def set_current_question(session, question_data):
     session.question_index += 1
     session.used_words.append(question_data["keyword"])
     session.question_start_time = time.time()
+    save_session(session)
+
+
+def use_guess(session):
+    session.guesses_current += 1
+    save_session(session)
+
+
+def use_hint(session):
+    session.hints_used_current += 1
+    save_session(session)
+    hint_key = f"hint{session.hints_used_current}"
+    return session.current_question.get(hint_key, "暂无更多提示")
 
 
 def calculate_score(session, score_ratio):
@@ -99,6 +84,7 @@ def record_result(session, score, judge_result):
         "hints_used": session.hints_used_current,
     })
     session.total_score += score
+    save_session(session)
 
 
 def get_game_summary(session):
