@@ -1,75 +1,298 @@
-.result-page {
+.rs-page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 32px 24px 48px;
+}
+
+.rs-content {
+  max-width: 480px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.rs-content > * {
+  animation: fadeInUp 500ms var(--ease-out) both;
+}
+
+.rs-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  padding: 2rem;
+  min-height: 60vh;
+  gap: 20px;
+  color: var(--color-text-secondary);
+}
+
+/* --- Header --- */
+.rs-header {
   text-align: center;
 }
 
-.result-page h1 {
-  margin-bottom: 2rem;
+.rs-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-surface);
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
 }
 
-.result-stats {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
+.rs-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
-.stat-item {
+/* --- Grade area --- */
+.rs-grade-area {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 12px;
 }
 
-.stat-value {
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  color: #888;
-  margin-top: 0.3rem;
-}
-
-.result-placeholder {
-  color: #aaa;
-  font-size: 0.85rem;
-  margin-bottom: 2rem;
-}
-
-.result-actions {
+.rs-grade {
+  width: 80px;
+  height: 80px;
   display: flex;
-  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--grade-color);
+  border: 3px solid var(--grade-color);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--grade-color) 6%, white);
 }
 
-.btn-replay,
-.btn-home {
-  padding: 0.7rem 2rem;
-  border: none;
-  border-radius: 10px;
+.rs-main-score {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.rs-main-score-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.rs-main-score-max {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* --- Stats --- */
+.rs-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 28px;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+  width: 100%;
+}
+
+.rs-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.rs-stat-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.rs-stat-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.rs-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--color-border);
+}
+
+/* --- Best question --- */
+.rs-best {
+  width: 100%;
+  padding: 16px 20px;
+  background: var(--color-warning-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid #fde68a;
+}
+
+.rs-best-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-accent-dark);
+  margin-bottom: 10px;
+}
+
+.rs-best-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rs-best-keyword {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  flex: 1;
+}
+
+.rs-best-score {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.rs-best-time {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- History --- */
+.rs-history {
+  width: 100%;
+}
+
+.rs-history-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+}
+
+.rs-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rs-history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  font-size: 0.9rem;
+}
+
+.rs-history-idx {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.rs-history-keyword {
+  flex: 1;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.rs-history-match {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.rs-match-exact .rs-history-match {
+  color: var(--color-success);
+  background: var(--color-success-surface);
+}
+
+.rs-match-close .rs-history-match {
+  color: #059669;
+  background: #ecfdf5;
+}
+
+.rs-match-related .rs-history-match {
+  color: var(--color-accent-dark);
+  background: var(--color-warning-surface);
+}
+
+.rs-match-wrong .rs-history-match {
+  color: var(--color-danger);
+  background: var(--color-danger-surface);
+}
+
+.rs-history-score {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* --- Actions --- */
+.rs-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.rs-btn {
+  flex: 1;
+  padding: 14px 24px;
   font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  transition: all 200ms var(--ease-out);
 }
 
-.btn-replay {
-  background: #4f46e5;
-  color: #fff;
+.rs-btn-primary {
+  background: var(--color-primary);
+  color: white;
 }
 
-.btn-replay:hover {
-  background: #4338ca;
+.rs-btn-primary:hover {
+  background: var(--color-primary-dark);
 }
 
-.btn-home {
-  background: #e5e7eb;
-  color: #333;
+.rs-btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border);
 }
 
-.btn-home:hover {
-  background: #d1d5db;
+.rs-btn-secondary:hover {
+  border-color: var(--color-text-muted);
 }

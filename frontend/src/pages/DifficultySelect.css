@@ -1,68 +1,127 @@
-.difficulty-page {
+.ds-page {
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 3rem 1rem;
-  min-height: 100vh;
+  padding: 24px 24px 48px;
 }
 
-.difficulty-page h1 {
-  margin-bottom: 2rem;
-}
-
-.difficulty-cards {
+.ds-back {
+  align-self: flex-start;
   display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.difficulty-card {
-  width: 240px;
-  padding: 1.5rem;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  border: 2px solid transparent;
-}
-
-.difficulty-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-}
-
-.difficulty-easy {
-  background: #ecfdf5;
-  border-color: #6ee7b7;
-}
-
-.difficulty-medium {
-  background: #fef9c3;
-  border-color: #fbbf24;
-}
-
-.difficulty-hard {
-  background: #fee2e2;
-  border-color: #f87171;
-}
-
-.difficulty-card h2 {
-  margin: 0 0 0.5rem;
-}
-
-.difficulty-desc {
+  align-items: center;
+  gap: 4px;
+  background: none;
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
-  color: #555;
-  margin-bottom: 1rem;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  transition: color 150ms;
 }
 
-.difficulty-info {
-  list-style: none;
-  padding: 0;
-  font-size: 0.85rem;
-  color: #666;
+.ds-back:hover {
+  color: var(--color-text);
 }
 
-.difficulty-info li {
-  margin-bottom: 0.3rem;
+.ds-header {
+  text-align: center;
+  margin-bottom: 40px;
+  animation: fadeIn 400ms var(--ease-out);
+}
+
+.ds-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.ds-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+}
+
+.ds-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  max-width: 900px;
+  width: 100%;
+}
+
+.ds-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 28px 24px;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--color-border);
+  text-align: left;
+  transition: all 250ms var(--ease-out);
+  animation: fadeInUp 500ms var(--ease-out) both;
+}
+
+.ds-card:hover {
+  border-color: var(--card-accent);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--card-accent) 15%, transparent);
+  transform: translateY(-4px);
+}
+
+.ds-card-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--card-accent);
+  margin-bottom: 16px;
+}
+
+.ds-card-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--color-text);
+}
+
+.ds-card-desc {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.ds-card-details {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.ds-card-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ds-detail-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.ds-detail-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .ds-cards {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+  }
 }
