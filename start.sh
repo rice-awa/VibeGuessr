@@ -20,6 +20,23 @@ NC='\033[0m'
 BACKEND_PID=""
 FRONTEND_PID=""
 
+stop_existing_project_processes() {
+    echo -e "  ${CYAN}→${NC} Checking existing VibeGuessr dev processes..."
+
+    BACKEND_MATCH="$VENV_PYTHON app.py"
+    FRONTEND_MATCH="$FRONTEND_DIR/node_modules/.bin/vite"
+
+    if pgrep -f "$BACKEND_MATCH" >/dev/null 2>&1; then
+        pkill -f "$BACKEND_MATCH" 2>/dev/null || true
+        echo -e "  ${YELLOW}!${NC} Stopped existing backend process"
+    fi
+
+    if pgrep -f "$FRONTEND_MATCH" >/dev/null 2>&1; then
+        pkill -f "$FRONTEND_MATCH" 2>/dev/null || true
+        echo -e "  ${YELLOW}!${NC} Stopped existing frontend process"
+    fi
+}
+
 cleanup() {
     echo ""
     echo -e "${CYAN}[VibeGuessr]${NC} Shutting down..."
@@ -108,15 +125,26 @@ echo -e "  ${GREEN}✓${NC} Node dependencies installed"
 
 echo -e "\n${CYAN}[4/4]${NC} Starting services..."
 
+stop_existing_project_processes
+rm -rf "$FRONTEND_DIR/node_modules/.vite"
+echo -e "  ${GREEN}✓${NC} Frontend dependency cache cleared"
+
 cd "$BACKEND_DIR"
-"$VENV_PYTHON" app.py &
+PYTHONUNBUFFERED=1 "$VENV_PYTHON" app.py &
 BACKEND_PID=$!
 echo -e "  ${GREEN}✓${NC} Backend starting on $BACKEND_URL"
 
 cd "$FRONTEND_DIR"
-npm run dev -- --host "$FRONTEND_HOST" --port "$FRONTEND_PORT" --strictPort &
+npm run build >/tmp/vibeguessr-frontend-build.log 2>&1
+npm run preview -- --host "$FRONTEND_HOST" --port "$FRONTEND_PORT" --strictPort &
 FRONTEND_PID=$!
 echo -e "  ${GREEN}✓${NC} Frontend starting on $FRONTEND_URL"
+
+sleep 1
+if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
+    echo -e "  ${RED}✗${NC} Backend failed to start. Check the error above."
+    cleanup
+fi
 
 echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
