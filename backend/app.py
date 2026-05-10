@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -17,14 +19,28 @@ def _error(msg, status=400):
     return jsonify({"error": msg}), status
 
 
+def _log(message):
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"[{timestamp}] [VibeGuessr] {message}", flush=True)
+
+
+@app.before_request
+def log_request_start():
+    if request.path.startswith("/api/"):
+        _log(f"request {request.method} {request.path}")
+
+
 @app.route("/api/game/start", methods=["POST"])
 def start_game():
     data = request.get_json(silent=True) or {}
     difficulty = data.get("difficulty", "easy")
+    _log(f"start_game difficulty={difficulty}")
     try:
         session = game_service.create_session(difficulty)
     except ValueError as e:
+        _log(f"start_game failed difficulty={difficulty} error={e}")
         return _error(str(e))
+    _log(f"start_game ok session_id={session.session_id}")
     return jsonify({
         "session_id": session.session_id,
         "difficulty": difficulty,
@@ -50,6 +66,7 @@ def next_question():
         return _error(str(e), 404)
 
     if game_service.is_game_over(session):
+        _log(f"next_question game_over session_id={session_id}")
         return jsonify({"game_over": True, **session.to_dict()})
 
     diff_config = session.config
@@ -59,23 +76,30 @@ def next_question():
     word_data = None
     while retries <= MAX_RETRIES:
         try:
+            _log(f"next_question generating_word session_id={session_id} attempt={retries + 1}")
             word_data = llm_service.generate_word(prompt)
+            _log(f"next_question word_ready session_id={session_id} keyword={word_data.get('keyword')}")
             break
-        except Exception:
+        except Exception as e:
+            _log(f"next_question word_failed session_id={session_id} attempt={retries + 1} error={e}")
             retries += 1
             if retries > MAX_RETRIES:
                 return _error("Failed to generate word after retries", 502)
 
     try:
+        _log(f"next_question generating_image session_id={session_id}")
         image_data = image_service.generate_image(
             word_data["visual_desc"],
             diff_config["blur_prompt"],
             diff_config["image_strategy"],
         )
-    except Exception:
+        _log(f"next_question image_ready session_id={session_id} has_image={bool(image_data)}")
+    except Exception as e:
+        _log(f"next_question image_failed session_id={session_id} error={e}")
         image_data = None
 
     game_service.set_current_question(session, word_data)
+    _log(f"next_question ok session_id={session_id} question_index={session.question_index}")
 
     return jsonify({
         "question_index": session.question_index,
@@ -221,4 +245,4 @@ def get_result():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
