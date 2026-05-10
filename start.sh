@@ -4,6 +4,12 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BACKEND_DIR="$ROOT_DIR/backend"
 FRONTEND_DIR="$ROOT_DIR/frontend"
+VENV_DIR="$BACKEND_DIR/.venv"
+VENV_PYTHON="$VENV_DIR/bin/python"
+BACKEND_URL="http://localhost:5000"
+FRONTEND_URL="http://localhost:8085"
+FRONTEND_HOST="0.0.0.0"
+FRONTEND_PORT="8085"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -87,7 +93,11 @@ fi
 echo -e "\n${CYAN}[3/4]${NC} Installing dependencies..."
 
 echo -e "  ${CYAN}→${NC} Python dependencies..."
-pip install -q -r "$BACKEND_DIR/requirements.txt" 2>&1 | tail -1
+if [ ! -x "$VENV_PYTHON" ]; then
+    echo -e "  ${CYAN}→${NC} Creating Python virtual environment..."
+    python3 -m venv "$VENV_DIR"
+fi
+"$VENV_PYTHON" -m pip install -q -r "$BACKEND_DIR/requirements.txt" 2>&1 | tail -1
 echo -e "  ${GREEN}✓${NC} Python dependencies installed"
 
 echo -e "  ${CYAN}→${NC} Node dependencies..."
@@ -99,20 +109,20 @@ echo -e "  ${GREEN}✓${NC} Node dependencies installed"
 echo -e "\n${CYAN}[4/4]${NC} Starting services..."
 
 cd "$BACKEND_DIR"
-python3 app.py &
+"$VENV_PYTHON" app.py &
 BACKEND_PID=$!
-echo -e "  ${GREEN}✓${NC} Backend starting on http://localhost:5000"
+echo -e "  ${GREEN}✓${NC} Backend starting on $BACKEND_URL"
 
 cd "$FRONTEND_DIR"
-npm run dev -- --host &
+npm run dev -- --host "$FRONTEND_HOST" --port "$FRONTEND_PORT" --strictPort &
 FRONTEND_PID=$!
-echo -e "  ${GREEN}✓${NC} Frontend starting on http://localhost:3000"
+echo -e "  ${GREEN}✓${NC} Frontend starting on $FRONTEND_URL"
 
 echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${GREEN}  VibeGuessr is running!${NC}"
-echo -e "${GREEN}  Frontend:  http://localhost:3000${NC}"
-echo -e "${GREEN}  Backend:   http://localhost:5000${NC}"
+echo -e "${GREEN}  Frontend:  $FRONTEND_URL${NC}"
+echo -e "${GREEN}  Backend:   $BACKEND_URL${NC}"
 echo -e "${GREEN}  Press Ctrl+C to stop${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
