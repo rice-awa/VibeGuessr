@@ -1,5 +1,5 @@
 import requests
-from config import OPENAI_API_BASE_URL, OPENAI_API_KEY, IMAGE_MODEL, IMAGE_SIZE, IMAGE_REQUEST_TIMEOUT, MAX_RETRIES
+from config import IMAGE_API_BASE_URL, IMAGE_API_KEY, IMAGE_MODEL, IMAGE_SIZE, IMAGE_REQUEST_TIMEOUT, MAX_RETRIES
 
 
 def _normalize_image_response(content):
@@ -13,11 +13,36 @@ def _normalize_image_response(content):
     return f"data:image/png;base64,{content}"
 
 
+def _extract_image_content(data):
+    if not data:
+        return None
+    if isinstance(data, dict):
+        if data.get("data") and isinstance(data["data"], list):
+            first = data["data"][0] if data["data"] else None
+            if isinstance(first, dict):
+                content = first.get("b64_json") or first.get("url") or first.get("content")
+                return _normalize_image_response(content)
+        choices = data.get("choices")
+        if choices:
+            message = choices[0].get("message", {})
+            content = message.get("content")
+            if isinstance(content, str):
+                return _normalize_image_response(content)
+            if isinstance(content, list):
+                for item in content:
+                    if isinstance(item, dict):
+                        if item.get("b64_json"):
+                            return _normalize_image_response(item["b64_json"])
+                        if item.get("image_url", {}).get("url"):
+                            return _normalize_image_response(item["image_url"]["url"])
+    return None
+
+
 def _request_image(prompt):
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Authorization": f"Bearer {IMAGE_API_KEY}",
     }
     payload = {
         "model": IMAGE_MODEL,
@@ -30,14 +55,14 @@ def _request_image(prompt):
     for attempt in range(MAX_RETRIES + 1):
         try:
             resp = requests.post(
-                f"{OPENAI_API_BASE_URL}/images/generations",
+                f"{IMAGE_API_BASE_URL}/images/generations",
                 headers=headers,
                 json=payload,
                 timeout=IMAGE_REQUEST_TIMEOUT,
             )
             resp.raise_for_status()
             data = resp.json()
-            content = data["choices"][0]["message"]["content"]
+            content = _extract_image_content(data)
             return _normalize_image_response(content)
         except (requests.Timeout, requests.ConnectionError) as e:
             last_error = e

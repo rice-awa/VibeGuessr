@@ -3,12 +3,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai_compat")
+
 GEMINI_API_BASE_URL = os.getenv("GEMINI_API_BASE_URL", "")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 LLM_MODEL = os.getenv("LLM_MODEL", "gemini-2.5-flash")
 
+LLM_API_BASE_URL = os.getenv("LLM_API_BASE_URL", GEMINI_API_BASE_URL).rstrip("/")
+LLM_API_KEY = os.getenv("LLM_API_KEY", GEMINI_API_KEY)
+LLM_CHAT_MODEL = os.getenv("LLM_CHAT_MODEL", LLM_MODEL)
+LLM_VISION_MODEL = os.getenv("LLM_VISION_MODEL", LLM_CHAT_MODEL)
+LLM_JSON_MODE = os.getenv("LLM_JSON_MODE", "true").lower() in {"1", "true", "yes", "on"}
+
 OPENAI_API_BASE_URL = os.getenv("OPENAI_API_BASE_URL", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+IMAGE_API_BASE_URL = os.getenv("IMAGE_API_BASE_URL", OPENAI_API_BASE_URL).rstrip("/")
+IMAGE_API_KEY = os.getenv("IMAGE_API_KEY", OPENAI_API_KEY)
 IMAGE_MODEL = os.getenv("IMAGE_MODEL", "gpt-image-2-all")
 IMAGE_SIZE = os.getenv("IMAGE_SIZE", "1024x1024")
 
