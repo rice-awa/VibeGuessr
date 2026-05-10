@@ -5,7 +5,10 @@ export function useTimer(initialSeconds, { onExpire } = {}) {
   const [running, setRunning] = useState(false)
   const intervalRef = useRef(null)
   const onExpireRef = useRef(onExpire)
-  onExpireRef.current = onExpire
+
+  useEffect(() => {
+    onExpireRef.current = onExpire
+  }, [onExpire])
 
   const start = useCallback(() => setRunning(true), [])
   const pause = useCallback(() => setRunning(false), [])

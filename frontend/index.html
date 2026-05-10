@@ -1,16 +1,69 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <title>AI默契猜词大挑战</title>
+    <style>
+      .boot-fallback {
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: #f8fafc;
+        color: #1e293b;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .boot-card {
+        width: min(100%, 360px);
+        padding: 24px;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      }
+
+      .boot-spinner {
+        width: 44px;
+        height: 44px;
+        margin-bottom: 16px;
+        border-radius: 50%;
+        border: 4px solid #f0fdfa;
+        border-top-color: #0d9488;
+        animation: bootSpin 900ms linear infinite;
+      }
+
+      .boot-title {
+        margin: 0 0 6px;
+        font-size: 20px;
+        font-weight: 800;
+      }
+
+      .boot-text {
+        margin: 0;
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      @keyframes bootSpin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="boot-fallback">
+        <div class="boot-card">
+          <div class="boot-spinner"></div>
+          <h1 class="boot-title">加载游戏中</h1>
+          <p class="boot-text">正在启动前端并连接后端服务...</p>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

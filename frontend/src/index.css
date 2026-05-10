@@ -23,7 +23,7 @@
   --color-surface: #ffffff;
   --color-border: #e2e8f0;
 
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -78,6 +78,53 @@ button:disabled {
 input {
   font-family: inherit;
   outline: none;
+}
+
+.app-error-page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.app-error-panel {
+  width: min(100%, 420px);
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.app-error-eyebrow {
+  display: inline-flex;
+  padding: 3px 10px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-full);
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.app-error-panel h1 {
+  margin-bottom: 8px;
+  font-size: 1.4rem;
+}
+
+.app-error-panel p {
+  margin-bottom: 18px;
+  color: var(--color-text-secondary);
+  word-break: break-word;
+}
+
+.app-error-panel button {
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: white;
+  font-weight: 700;
 }
 
 @keyframes fadeIn {

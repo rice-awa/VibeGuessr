@@ -5,7 +5,48 @@ import { useGame } from '../hooks/useGame'
 import { DIFFICULTY_CONFIG } from '../store/gameStore'
 import FeedbackModal from '../components/FeedbackModal'
 import LoadingOverlay from '../components/LoadingOverlay'
+import { getGameStatusView } from './gameStatus'
 import './Game.css'
+
+function GameStatusPanel({ view, onRetry, onBack }) {
+  return (
+    <div className="gm-status-page">
+      <div className="gm-status-panel">
+        {!view.canRetry && (
+          <div className="gm-loading-mark" aria-hidden="true">
+            <div className="gm-loading-ring" />
+            <div className="gm-loading-core" />
+          </div>
+        )}
+        <div className="gm-status-eyebrow">{view.eyebrow}</div>
+        <h1 className="gm-status-title">{view.title}</h1>
+        <p className="gm-status-text">{view.status}</p>
+
+        <div className="gm-status-steps">
+          {view.steps.map(step => (
+            <div key={step.key} className={`gm-status-step gm-status-step-${step.state}`}>
+              <span className="gm-status-step-dot" />
+              <span>{step.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {view.canRetry ? (
+          <div className="gm-status-actions">
+            <button className="gm-status-primary" type="button" onClick={onRetry}>
+              重试生成
+            </button>
+            <button className="gm-status-secondary" type="button" onClick={onBack}>
+              返回选择难度
+            </button>
+          </div>
+        ) : (
+          <div className="gm-status-hint">这个阶段可能需要几十秒，终端和浏览器控制台会同步输出请求状态。</div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 function Game() {
   const location = useLocation()
@@ -33,6 +74,13 @@ function Game() {
   }, [handleTimeUp])
 
   const timer = useTimer(timeLimit || 60, { onExpire: onTimerExpire })
+  const {
+    seconds,
+    formatted,
+    reset: resetTimer,
+    start: startTimer,
+    pause: pauseTimer,
+  } = timer
 
   useEffect(() => {
     if (!hasStarted.current) {
@@ -43,20 +91,22 @@ function Game() {
 
   useEffect(() => {
     if (phase === 'playing') {
-      timer.reset(timeLimit)
-      timer.start()
-      setAnswer('')
-      setImageLoaded(false)
+      resetTimer(timeLimit)
+      startTimer()
+      queueMicrotask(() => {
+        setAnswer('')
+        setImageLoaded(false)
+      })
       inputRef.current?.focus()
     } else if (phase === 'judging' || phase === 'feedback') {
-      timer.pause()
+      pauseTimer()
     } else if (phase === 'finished') {
-      timer.pause()
+      pauseTimer()
       fetchResult().then(data => {
         navigate('/result', { state: { result: data, difficulty } })
       })
     }
-  }, [phase, timeLimit])
+  }, [difficulty, fetchResult, navigate, pauseTimer, phase, resetTimer, startTimer, timeLimit])
 
   const handleSubmit = (e) => {
     e?.preventDefault()
@@ -85,26 +135,35 @@ function Game() {
     setTimeout(() => inputRef.current?.focus(), 100)
   }
 
-  const timerPercent = timeLimit > 0 ? (timer.seconds / timeLimit) * 100 : 100
+  const handleStartRetry = () => {
+    hasStarted.current = false
+    setAnswer('')
+    startNewGame(difficulty)
+  }
+
+  const timerPercent = timeLimit > 0 ? (seconds / timeLimit) * 100 : 100
   const timerUrgent = timerPercent <= 30
   const timerWarning = timerPercent <= 50 && !timerUrgent
 
   const circumference = 2 * Math.PI * 38
   const strokeOffset = circumference * (1 - timerPercent / 100)
 
-  if (phase === 'idle' && error) {
-    return (
-      <div className="game-error-page">
-        <p className="game-error-text">{error}</p>
-        <button className="game-error-btn" onClick={() => navigate('/difficulty')}>
-          返回选择难度
-        </button>
-      </div>
-    )
-  }
+  if ((phase === 'idle' && questionIndex === 0) || phase === 'starting' || (phase === 'loading' && questionIndex === 0)) {
+    const statusView = getGameStatusView({
+      phase,
+      questionIndex,
+      loadingText,
+      error,
+      difficultyLabel: diffLabel,
+    })
 
-  if (phase === 'starting' || (phase === 'loading' && questionIndex === 0)) {
-    return <LoadingOverlay text={loadingText} />
+    return (
+      <GameStatusPanel
+        view={statusView}
+        onRetry={handleStartRetry}
+        onBack={() => navigate('/difficulty')}
+      />
+    )
   }
 
   const isLastQuestion = questionIndex >= totalQuestions
@@ -134,7 +193,7 @@ function Game() {
               className="gm-timer-progress"
             />
           </svg>
-          <span className="gm-timer-text">{timer.formatted}</span>
+          <span className="gm-timer-text">{formatted}</span>
         </div>
 
         <div className="gm-score-pill">

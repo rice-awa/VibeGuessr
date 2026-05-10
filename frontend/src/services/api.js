@@ -1,51 +1,74 @@
 const API_BASE = '/api/game'
 
+async function parseJsonResponse(res) {
+  try {
+    return await res.json()
+  } catch {
+    return { error: `Invalid JSON response (${res.status})` }
+  }
+}
+
+async function requestJson(path, options = {}) {
+  const label = `${options.method || 'GET'} ${path}`
+  console.info(`[VibeGuessr API] ${label} started`, options.body ? JSON.parse(options.body) : undefined)
+
+  const res = await fetch(`${API_BASE}${path}`, options)
+  const data = await parseJsonResponse(res)
+
+  if (!res.ok) {
+    const message = data?.error || `${res.status} ${res.statusText}`
+    console.error(`[VibeGuessr API] ${label} failed`, {
+      status: res.status,
+      statusText: res.statusText,
+      data,
+    })
+    throw new Error(message)
+  }
+
+  console.info(`[VibeGuessr API] ${label} completed`, data)
+  return data
+}
+
 export async function startGame(difficulty) {
-  const res = await fetch(`${API_BASE}/start`, {
+  return requestJson('/start', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ difficulty }),
   })
-  return res.json()
 }
 
 export async function getNextQuestion(sessionId) {
-  const res = await fetch(`${API_BASE}/next`, {
+  return requestJson('/next', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ session_id: sessionId }),
   })
-  return res.json()
 }
 
 export async function submitGuess(sessionId, answer) {
-  const res = await fetch(`${API_BASE}/guess`, {
+  return requestJson('/guess', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ session_id: sessionId, answer }),
   })
-  return res.json()
 }
 
 export async function getHint(sessionId) {
-  const res = await fetch(`${API_BASE}/hint`, {
+  return requestJson('/hint', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ session_id: sessionId }),
   })
-  return res.json()
 }
 
 export async function revealAnswer(sessionId) {
-  const res = await fetch(`${API_BASE}/reveal`, {
+  return requestJson('/reveal', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ session_id: sessionId }),
   })
-  return res.json()
 }
 
 export async function getResult(sessionId) {
-  const res = await fetch(`${API_BASE}/result?session_id=${sessionId}`)
-  return res.json()
+  return requestJson(`/result?session_id=${sessionId}`)
 }

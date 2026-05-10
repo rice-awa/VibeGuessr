@@ -57,8 +57,9 @@ export function useGame() {
         setStreak(data.session.streak || 0)
       }
       setPhase('playing')
-    } catch {
-      setError('获取题目失败，请重试')
+    } catch (err) {
+      console.error('[VibeGuessr Game] loadNextQuestion failed', err)
+      setError(err.message || '获取题目失败，请重试')
       setPhase('idle')
     }
   }, [])
@@ -87,8 +88,9 @@ export function useGame() {
       setConfig(data.config)
       setTotalQuestions(data.config.total_questions)
       await loadNextQuestion(sid)
-    } catch {
-      setError('创建游戏失败，请重试')
+    } catch (err) {
+      console.error('[VibeGuessr Game] startNewGame failed', err)
+      setError(err.message || '创建游戏失败，请重试')
       setPhase('idle')
     }
   }, [loadNextQuestion])
@@ -136,8 +138,9 @@ export function useGame() {
           // non-critical
         }
       }
-    } catch {
-      setError('提交失败，请重试')
+    } catch (err) {
+      console.error('[VibeGuessr Game] submitAnswer failed', err)
+      setError(err.message || '提交失败，请重试')
       setPhase('playing')
     }
   }, [])

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { DIFFICULTY_CONFIG, saveScore } from '../store/gameStore'
 import './Result.css'
@@ -12,12 +12,12 @@ function Result() {
 
   const [animScore, setAnimScore] = useState(0)
   const [animAccuracy, setAnimAccuracy] = useState(0)
-  const [saved, setSaved] = useState(false)
+  const savedRef = useRef(false)
 
   useEffect(() => {
     if (!data) return
 
-    if (!saved) {
+    if (!savedRef.current) {
       saveScore({
         difficulty,
         totalScore: data.total_score,
@@ -26,7 +26,7 @@ function Result() {
         answeredQuestions: data.answered_questions,
         totalQuestions: data.total_questions,
       })
-      setSaved(true)
+      savedRef.current = true
     }
 
     const duration = 800
@@ -44,7 +44,7 @@ function Result() {
     }, interval)
 
     return () => clearInterval(timer)
-  }, [data, difficulty, saved])
+  }, [data, difficulty])
 
   if (!data) {
     return (
