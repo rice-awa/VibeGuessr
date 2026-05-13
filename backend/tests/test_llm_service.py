@@ -50,6 +50,32 @@ def load_modules():
 
 
 class LLMServiceTests(unittest.TestCase):
+    def test_llm_api_key_is_empty_when_primary_and_legacy_values_are_placeholders(self):
+        with temp_env({
+            "LLM_PROVIDER": "openai_compat",
+            "LLM_API_BASE_URL": "https://proxy.example.com/v1",
+            "LLM_API_KEY": "sk-your-llm-api-key-here",
+            "GEMINI_API_KEY": "sk-your-gemini-api-key-here",
+            "LLM_CHAT_MODEL": "gpt-4o-mini",
+            "LLM_VISION_MODEL": "gpt-4o-mini",
+        }):
+            llm_service, _ = load_modules()
+
+        self.assertEqual(llm_service.LLM_API_KEY, "")
+
+    def test_llm_api_key_falls_back_to_legacy_gemini_key_when_primary_is_placeholder(self):
+        with temp_env({
+            "LLM_PROVIDER": "openai_compat",
+            "LLM_API_BASE_URL": "https://proxy.example.com/v1",
+            "LLM_API_KEY": "sk-your-llm-api-key-here",
+            "GEMINI_API_KEY": "legacy-real-key",
+            "LLM_CHAT_MODEL": "gpt-4o-mini",
+            "LLM_VISION_MODEL": "gpt-4o-mini",
+        }):
+            llm_service, _ = load_modules()
+
+        self.assertEqual(llm_service.LLM_API_KEY, "legacy-real-key")
+
     def test_analyze_image_builds_openai_multimodal_payload(self):
         with temp_env({
             "LLM_PROVIDER": "openai_compat",
