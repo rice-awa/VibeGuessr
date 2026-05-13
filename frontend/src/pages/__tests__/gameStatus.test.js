@@ -46,3 +46,18 @@ test('shows a loading page before startNewGame updates phase', () => {
   assert.equal(view.steps[0].state, 'active')
   assert.equal(view.canRetry, false)
 })
+
+test('shows a progressive state while the first word is ready but the image is still loading', () => {
+  const view = getGameStatusView({
+    phase: 'partial',
+    questionIndex: 0,
+    loadingText: '关键词已到，图像仍在生成',
+    error: null,
+    difficultyLabel: '中等',
+  })
+
+  assert.equal(view.title, '正在生成首题')
+  assert.match(view.status, /图像仍在生成/)
+  assert.equal(view.steps[1].state, 'done')
+  assert.equal(view.steps[2].state, 'active')
+})

@@ -7,7 +7,13 @@ const INITIAL_STEPS = [
 export function getGameStatusView({ phase, questionIndex, loadingText, error, difficultyLabel }) {
   const isInitialQuestion = questionIndex === 0
   const hasError = Boolean(error)
-  const activeStep = phase === 'idle' || phase === 'starting' ? 0 : isInitialQuestion ? 2 : 1
+  const activeStep = phase === 'idle' || phase === 'starting'
+    ? 0
+    : phase === 'partial'
+      ? 2
+      : isInitialQuestion
+        ? 2
+        : 1
 
   const steps = INITIAL_STEPS.map((step, index) => ({
     ...step,
@@ -42,7 +48,7 @@ export function getGameStatusView({ phase, questionIndex, loadingText, error, di
 
   return {
     eyebrow: `${difficultyLabel}难度`,
-    title: phase === 'starting' ? '正在创建游戏' : '正在生成首题',
+    title: phase === 'starting' ? '正在创建游戏' : phase === 'partial' ? '正在生成首题' : '正在生成首题',
     status: loadingText || 'AI 正在准备题目...',
     steps,
     canRetry: false,

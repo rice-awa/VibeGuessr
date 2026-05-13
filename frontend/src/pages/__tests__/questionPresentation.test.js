@@ -31,3 +31,17 @@ test('falls back to text mode when image generation fails', () => {
   assert.equal(presentation.primaryHint, '它常见于家中，行动很轻。')
   assert.equal(presentation.notice, '图片生成超时，先用文字提示继续作答')
 })
+
+test('shows a partial state when the word is ready but the image is not', () => {
+  const presentation = getQuestionPresentation({
+    image: null,
+    category: '动物',
+    imageMode: 'partial',
+    fallbackHint: '先根据分类和提示作答',
+  })
+
+  assert.equal(presentation.mode, 'partial')
+  assert.equal(presentation.src, null)
+  assert.equal(presentation.badge, '动物')
+  assert.equal(presentation.notice, '关键词已就绪，图片还在生成中')
+})

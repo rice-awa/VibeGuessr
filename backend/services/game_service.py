@@ -1,13 +1,27 @@
 import time
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 from config import (
     DIFFICULTY_CONFIG,
     QUESTIONS_PER_GAME,
     MAX_GUESSES_PER_QUESTION,
+    MAX_RETRIES,
     HINT_SCORE_PENALTY,
     STREAK_BONUSES,
 )
 from models.game import GameSession, save_session, load_session
+
+PRELOAD_EXECUTOR = ThreadPoolExecutor(max_workers=4)
+PRELOAD_LOCKS = {}
+PRELOAD_LOCKS_GUARD = threading.Lock()
+
+
+def _preload_lock(session_id):
+    with PRELOAD_LOCKS_GUARD:
+        if session_id not in PRELOAD_LOCKS:
+            PRELOAD_LOCKS[session_id] = threading.Lock()
+        return PRELOAD_LOCKS[session_id]
 
 
 def create_session(difficulty):
@@ -32,6 +46,9 @@ def set_current_question(session, question_data):
     session.question_index += 1
     session.used_words.append(question_data["keyword"])
     session.question_start_time = time.time()
+    session.preloaded_question = None
+    session.preload_status = "idle"
+    session.preload_error = ""
     save_session(session)
 
 
@@ -85,6 +102,110 @@ def record_result(session, score, judge_result):
     })
     session.total_score += score
     save_session(session)
+
+
+def _build_question(diff_config, used_words, word_data, image_data):
+    image_mode = "image"
+    image_status = "ready"
+    fallback_hint = ""
+
+    if not image_data:
+        image_mode = "text"
+        image_status = "图片生成超时，已切换到纯文字提示模式"
+        fallback_hint = word_data.get("hint1", "")
+
+    return {
+        "keyword": word_data["keyword"],
+        "visual_desc": word_data["visual_desc"],
+        "category": word_data.get("category", ""),
+        "hint1": word_data.get("hint1", ""),
+        "hint2": word_data.get("hint2", ""),
+        "hint3": word_data.get("hint3", ""),
+        "image": image_data,
+        "image_mode": image_mode,
+        "image_status": image_status,
+        "fallback_hint": fallback_hint,
+        "time_limit": diff_config["time_limit"],
+        "hints_remaining": diff_config["hints"],
+    }
+
+
+def generate_question(session):
+    from prompts.word_gen import build_word_gen_prompt
+    from services import llm_service, image_service
+
+    diff_config = session.config
+    prompt = build_word_gen_prompt(diff_config, session.used_words)
+
+    retries = 0
+    while retries <= MAX_RETRIES:
+        try:
+            word_data = llm_service.generate_word(prompt)
+            break
+        except Exception:
+            retries += 1
+            if retries > MAX_RETRIES:
+                raise
+
+    try:
+        image_data = image_service.generate_image(
+            word_data["visual_desc"],
+            diff_config["blur_prompt"],
+            diff_config["image_strategy"],
+        )
+    except Exception:
+        image_data = None
+
+    return _build_question(diff_config, session.used_words, word_data, image_data)
+
+
+def preload_question(session_id):
+    session = get_session(session_id)
+    source_question_index = session.question_index
+    lock = _preload_lock(session_id)
+    with lock:
+        if session.preload_status == "loading":
+            return session.preloaded_question
+        if session.preloaded_question:
+            return session.preloaded_question
+        session.preload_status = "loading"
+        session.preload_error = ""
+        save_session(session)
+
+    try:
+        question = generate_question(session)
+        session = get_session(session_id)
+        if session.question_index != source_question_index:
+            return None
+        with lock:
+            session.preloaded_question = question
+            session.preload_status = "ready"
+            session.preload_error = ""
+            save_session(session)
+        return question
+    except Exception as exc:
+        session = get_session(session_id)
+        with lock:
+            session.preloaded_question = None
+            session.preload_status = "error"
+            session.preload_error = str(exc)
+            save_session(session)
+        return None
+
+
+def reserve_preloaded_question(session):
+    question = session.preloaded_question
+    if not question:
+        return None
+    session.preloaded_question = None
+    session.preload_status = "idle"
+    session.preload_error = ""
+    save_session(session)
+    return question
+
+
+def start_preload(session_id):
+    PRELOAD_EXECUTOR.submit(preload_question, session_id)
 
 
 def get_game_summary(session):
