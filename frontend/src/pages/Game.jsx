@@ -6,6 +6,7 @@ import { DIFFICULTY_CONFIG } from '../store/gameStore'
 import FeedbackModal from '../components/FeedbackModal'
 import LoadingOverlay from '../components/LoadingOverlay'
 import { getGameStatusView } from './gameStatus'
+import { getQuestionPresentation } from './questionPresentation'
 import './Game.css'
 
 function GameStatusPanel({ view, onRetry, onBack }) {
@@ -56,7 +57,7 @@ function Game() {
 
   const {
     phase, questionIndex, totalQuestions,
-    image, category, timeLimit,
+    image, imageMode, imageStatus, fallbackHint, category, timeLimit,
     hintsRemaining, guessesRemaining, hints,
     totalScore, streak, feedback, revealData,
     loadingText, error,
@@ -167,6 +168,13 @@ function Game() {
   }
 
   const isLastQuestion = questionIndex >= totalQuestions
+  const presentation = getQuestionPresentation({
+    image,
+    imageMode,
+    fallbackHint,
+    category,
+  })
+  const showPrimer = questionIndex === 1 && phase === 'playing'
 
   return (
     <div className="gm-page">
@@ -209,12 +217,29 @@ function Game() {
       )}
 
       <div className="gm-main">
-        <div className="gm-image-wrap">
-          {image ? (
+        {showPrimer && (
+          <section className="gm-primer" aria-label="游戏规则">
+            <div className="gm-primer-item">
+              <span className="gm-primer-index">1</span>
+              <span>先看模糊图或文字线索，再输入最接近的答案。</span>
+            </div>
+            <div className="gm-primer-item">
+              <span className="gm-primer-index">2</span>
+              <span>倒计时内越快答对分越高，提示会扣减本题基础分。</span>
+            </div>
+            <div className="gm-primer-item">
+              <span className="gm-primer-index">3</span>
+              <span>接近答案也有分，连续命中会触发连胜加成。</span>
+            </div>
+          </section>
+        )}
+
+        <div className={`gm-image-wrap ${presentation.mode === 'text' ? 'gm-text-mode' : ''}`}>
+          {presentation.src ? (
             <>
               <img
                 className={`gm-image ${imageLoaded ? 'gm-image-loaded' : ''}`}
-                src={image}
+                src={presentation.src}
                 alt="猜猜这是什么"
                 onLoad={() => setImageLoaded(true)}
               />
@@ -225,17 +250,21 @@ function Game() {
               )}
             </>
           ) : (
-            <div className="gm-image-empty">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                <rect x="6" y="10" width="36" height="28" rx="4" stroke="currentColor" strokeWidth="2"/>
-                <circle cx="18" cy="22" r="4" stroke="currentColor" strokeWidth="2"/>
-                <path d="M6 32l10-8 6 5 8-10 12 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <div className="gm-text-card">
+              <svg width="52" height="52" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+                <rect x="9" y="8" width="34" height="36" rx="8" stroke="currentColor" strokeWidth="2"/>
+                <path d="M17 19h18M17 27h18M17 35h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
-              <span>等待图片加载</span>
+              <span className="gm-text-card-label">文字线索</span>
+              <p>{presentation.primaryHint}</p>
             </div>
           )}
-          {category && <div className="gm-category">{category}</div>}
+          {presentation.badge && <div className="gm-category">{presentation.badge}</div>}
         </div>
+
+        {presentation.notice && (
+          <div className="gm-mode-notice">{imageStatus || presentation.notice}</div>
+        )}
 
         {hints.length > 0 && (
           <div className="gm-hints">

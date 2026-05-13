@@ -10,6 +10,9 @@ export function useGame() {
   const [questionIndex, setQuestionIndex] = useState(0)
   const [totalQuestions, setTotalQuestions] = useState(10)
   const [image, setImage] = useState(null)
+  const [imageMode, setImageMode] = useState('image')
+  const [imageStatus, setImageStatus] = useState('')
+  const [fallbackHint, setFallbackHint] = useState('')
   const [category, setCategory] = useState('')
   const [timeLimit, setTimeLimit] = useState(60)
   const [hintsRemaining, setHintsRemaining] = useState(0)
@@ -48,6 +51,9 @@ export function useGame() {
       setQuestionIndex(data.question_index)
       setTotalQuestions(data.total_questions)
       setImage(data.image)
+      setImageMode(data.image_mode || (data.image ? 'image' : 'text'))
+      setImageStatus(data.image_status || '')
+      setFallbackHint(data.fallback_hint || '')
       setCategory(data.category || '')
       setTimeLimit(data.time_limit)
       setHintsRemaining(data.hints_remaining)
@@ -198,7 +204,7 @@ export function useGame() {
   return {
     phase, sessionId, config, difficulty,
     questionIndex, totalQuestions,
-    image, category, timeLimit,
+    image, imageMode, imageStatus, fallbackHint, category, timeLimit,
     hintsRemaining, guessesRemaining, hints,
     totalScore, streak, feedback, revealData,
     loadingText, error,

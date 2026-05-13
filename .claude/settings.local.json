@@ -4,7 +4,9 @@
       "Bash(npm install *)",
       "Bash(npx vite *)",
       "Bash(python -m venv venv)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(python test_image_api.py)",
+      "Bash(python3 test_image_api.py)"
     ]
   }
 }

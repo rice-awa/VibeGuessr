@@ -86,6 +86,10 @@ def next_question():
             if retries > MAX_RETRIES:
                 return _error("Failed to generate word after retries", 502)
 
+    image_mode = "image"
+    image_status = "ready"
+    fallback_hint = ""
+
     try:
         _log(f"next_question generating_image session_id={session_id}")
         image_data = image_service.generate_image(
@@ -94,9 +98,16 @@ def next_question():
             diff_config["image_strategy"],
         )
         _log(f"next_question image_ready session_id={session_id} has_image={bool(image_data)}")
+        if not image_data:
+            image_mode = "text"
+            image_status = "图片生成超时，已切换到纯文字提示模式"
+            fallback_hint = word_data.get("hint1", "")
     except Exception as e:
         _log(f"next_question image_failed session_id={session_id} error={e}")
         image_data = None
+        image_mode = "text"
+        image_status = "图片生成超时，已切换到纯文字提示模式"
+        fallback_hint = word_data.get("hint1", "")
 
     game_service.set_current_question(session, word_data)
     _log(f"next_question ok session_id={session_id} question_index={session.question_index}")
@@ -105,6 +116,9 @@ def next_question():
         "question_index": session.question_index,
         "total_questions": game_service.QUESTIONS_PER_GAME,
         "image": image_data,
+        "image_mode": image_mode,
+        "image_status": image_status,
+        "fallback_hint": fallback_hint,
         "category": word_data.get("category", ""),
         "time_limit": diff_config["time_limit"],
         "hints_remaining": diff_config["hints"],
