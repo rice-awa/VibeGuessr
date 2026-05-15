@@ -49,6 +49,7 @@ DIFFICULTY_CONFIG = {
     "medium": {
         "label": "中等",
         "word_scope": "职业、运动、地标建筑",
+        "category_pool": ["职业", "运动", "地标建筑", "交通工具", "乐器", "自然景观", "历史文化", "科技产品"],
         "hints": 2,
         "time_limit": 45,
         "base_score": 20,

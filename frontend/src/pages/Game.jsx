@@ -60,13 +60,14 @@ function Game() {
     image, imageMode, imageStatus, fallbackHint, category, timeLimit,
     hintsRemaining, guessesRemaining, hints,
     totalScore, streak, feedback, revealData,
-    loadingText, error,
+    loadingText, error, partialReady,
     startNewGame, submitAnswer, requestHint,
     handleTimeUp, goToNext, retryGuess, skipQuestion, fetchResult,
   } = useGame()
 
   const [answer, setAnswer] = useState('')
-  const [imageLoaded, setImageLoaded] = useState(false)
+  const [loadedImageSrc, setLoadedImageSrc] = useState('')
+  const [failedImageSrc, setFailedImageSrc] = useState('')
   const inputRef = useRef(null)
   const hasStarted = useRef(false)
 
@@ -96,7 +97,6 @@ function Game() {
       startTimer()
       queueMicrotask(() => {
         setAnswer('')
-        setImageLoaded(false)
       })
       inputRef.current?.focus()
     } else if (phase === 'judging' || phase === 'feedback') {
@@ -171,14 +171,16 @@ function Game() {
   const presentation = getQuestionPresentation({
     image,
     imageMode,
+    imageLoadFailed: Boolean(image && failedImageSrc === image),
     fallbackHint,
     category,
   })
-  const showPrimer = questionIndex === 1 && phase === 'playing'
+  const imageLoaded = Boolean(presentation.src && loadedImageSrc === presentation.src)
+  const showPrimer = questionIndex === 1 && (phase === 'playing' || phase === 'partial')
 
   return (
     <div className="gm-page">
-      {phase === 'loading' && <LoadingOverlay text={loadingText} />}
+      {phase === 'loading' && <LoadingOverlay text={loadingText || (partialReady ? '图片正在补齐...' : 'AI 正在出题...')} />}
 
       <div className="gm-topbar">
         <div className="gm-progress">
@@ -241,7 +243,8 @@ function Game() {
                 className={`gm-image ${imageLoaded ? 'gm-image-loaded' : ''}`}
                 src={presentation.src}
                 alt="猜猜这是什么"
-                onLoad={() => setImageLoaded(true)}
+                onLoad={() => setLoadedImageSrc(presentation.src)}
+                onError={() => setFailedImageSrc(presentation.src)}
               />
               {!imageLoaded && (
                 <div className="gm-image-skeleton">

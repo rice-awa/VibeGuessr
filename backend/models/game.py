@@ -2,6 +2,7 @@ import sqlite3
 import json
 import uuid
 import time
+import threading
 
 from config import DIFFICULTY_CONFIG, QUESTIONS_PER_GAME, DB_PATH
 
@@ -24,6 +25,16 @@ def init_db():
             created_at REAL NOT NULL
         )
     """)
+    columns = {
+        row[1]
+        for row in conn.execute("PRAGMA table_info(game_sessions)").fetchall()
+    }
+    if "preloaded_question" not in columns:
+        conn.execute("ALTER TABLE game_sessions ADD COLUMN preloaded_question TEXT")
+    if "preload_status" not in columns:
+        conn.execute("ALTER TABLE game_sessions ADD COLUMN preload_status TEXT NOT NULL DEFAULT 'idle'")
+    if "preload_error" not in columns:
+        conn.execute("ALTER TABLE game_sessions ADD COLUMN preload_error TEXT")
     conn.commit()
     conn.close()
 
@@ -43,6 +54,11 @@ class GameSession:
         self.guesses_current = 0
         self.question_start_time = None
         self.created_at = time.time()
+        self.preloaded_question = None
+        self.preload_status = "idle"
+        self.preload_error = ""
+        self.preload_lock = threading.Lock()
+        self.preload_future = None
 
     def to_dict(self):
         return {
@@ -52,6 +68,7 @@ class GameSession:
             "total_questions": QUESTIONS_PER_GAME,
             "total_score": round(self.total_score, 1),
             "streak": self.streak,
+            "preload_status": self.preload_status,
         }
 
 
@@ -61,8 +78,8 @@ def save_session(session):
         """INSERT OR REPLACE INTO game_sessions
            (session_id, difficulty, used_words, current_question, question_index,
             total_score, results, streak, hints_used_current, guesses_current,
-            question_start_time, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            question_start_time, created_at, preloaded_question, preload_status, preload_error)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             session.session_id,
             session.difficulty,
@@ -76,6 +93,9 @@ def save_session(session):
             session.guesses_current,
             session.question_start_time,
             session.created_at,
+            json.dumps(session.preloaded_question, ensure_ascii=False) if session.preloaded_question else None,
+            session.preload_status,
+            session.preload_error,
         ),
     )
     conn.commit()
@@ -102,6 +122,9 @@ def load_session(session_id):
     session.guesses_current = row["guesses_current"]
     session.question_start_time = row["question_start_time"]
     session.created_at = row["created_at"]
+    session.preloaded_question = json.loads(row["preloaded_question"]) if row["preloaded_question"] else None
+    session.preload_status = row["preload_status"] if "preload_status" in row.keys() else "idle"
+    session.preload_error = row["preload_error"] if "preload_error" in row.keys() and row["preload_error"] else ""
     return session
 
 

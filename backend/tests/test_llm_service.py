@@ -50,6 +50,8 @@ def load_modules():
 
 
 class LLMServiceTests(unittest.TestCase):
+    image_png_base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/lw9q0gAAAABJRU5ErkJggg=="
+
     def test_llm_api_key_is_empty_when_primary_and_legacy_values_are_placeholders(self):
         with temp_env({
             "LLM_PROVIDER": "openai_compat",
@@ -203,7 +205,7 @@ class LLMServiceTests(unittest.TestCase):
                 return FakeResponse({
                     "data": [
                         {
-                            "b64_json": "abc123"
+                            "b64_json": self.image_png_base64
                         }
                     ]
                 })
@@ -215,8 +217,37 @@ class LLMServiceTests(unittest.TestCase):
                     image_strategy="generate a complete image",
                 )
 
-            self.assertEqual(result, "data:image/png;base64,abc123")
+            self.assertEqual(result, f"data:image/png;base64,{self.image_png_base64}")
             self.assertEqual(captured["url"], "https://proxy.example.com/v1/images/generations")
+
+    def test_generate_image_ignores_non_image_text_response(self):
+        with temp_env({
+            "IMAGE_API_BASE_URL": "https://proxy.example.com/v1",
+            "IMAGE_API_KEY": "test-key",
+            "IMAGE_MODEL": "gpt-image-2-all",
+            "IMAGE_SIZE": "1024x1024",
+        }):
+            _, image_service = load_modules()
+
+            def fake_post(url, headers=None, json=None, timeout=None):
+                return FakeResponse({
+                    "choices": [
+                        {
+                            "message": {
+                                "content": "I could not generate an image for this prompt."
+                            }
+                        }
+                    ]
+                })
+
+            with patch.object(image_service.requests, "post", side_effect=fake_post):
+                result = image_service.generate_image(
+                    visual_desc="a red apple",
+                    blur_prompt="soft focus",
+                    image_strategy="generate a complete image",
+                )
+
+            self.assertIsNone(result)
 
 
 if __name__ == "__main__":
