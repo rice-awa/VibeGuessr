@@ -1,4 +1,5 @@
 import json
+import random
 from datetime import datetime
 
 from flask import Flask, request, jsonify, Response, stream_with_context
@@ -175,7 +176,20 @@ def next_question_stream():
             return
 
         diff_config = session.config
-        prompt = build_word_gen_prompt(diff_config, session.used_words)
+        recent_categories = [
+            result.get("category")
+            for result in session.results[-2:]
+            if result.get("category")
+        ]
+        if session.current_question and session.current_question.get("category"):
+            recent_categories.append(session.current_question["category"])
+        recent_categories = recent_categories[-2:]
+        target_category = None
+        category_pool = diff_config.get("category_pool", [])
+        if category_pool:
+            available_categories = [category for category in category_pool if category not in recent_categories]
+            target_category = random.choice(available_categories or category_pool)
+        prompt = build_word_gen_prompt(diff_config, session.used_words, recent_categories, target_category)
         retries = 0
         word_data = None
         while retries <= MAX_RETRIES:

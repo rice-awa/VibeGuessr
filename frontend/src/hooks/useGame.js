@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import {
   startGame,
   getNextQuestion,
@@ -9,6 +9,7 @@ import {
   revealAnswer,
   getResult,
 } from '../services/api'
+import { shouldApplyRevealResult } from './revealState'
 
 export function useGame() {
   const [phase, setPhase] = useState('idle')
@@ -39,6 +40,17 @@ export function useGame() {
 
   const sessionRef = useRef(null)
   const streamCancelRef = useRef(null)
+  const revealRequestIdRef = useRef(0)
+  const phaseRef = useRef(phase)
+  const questionIndexRef = useRef(questionIndex)
+
+  useEffect(() => {
+    phaseRef.current = phase
+  }, [phase])
+
+  useEffect(() => {
+    questionIndexRef.current = questionIndex
+  }, [questionIndex])
 
   const cleanupStream = useCallback(() => {
     if (streamCancelRef.current) {
@@ -49,6 +61,7 @@ export function useGame() {
 
   const loadNextQuestion = useCallback(async (sid) => {
     cleanupStream()
+    revealRequestIdRef.current += 1
     setPhase('loading')
     setLoadingText('AI 正在出题...')
     setFeedback(null)
@@ -131,6 +144,7 @@ export function useGame() {
 
   const startNewGame = useCallback(async (diff) => {
     cleanupStream()
+    revealRequestIdRef.current += 1
     setPhase('starting')
     setLoadingText('正在创建游戏...')
     setDifficulty(diff)
@@ -228,8 +242,19 @@ export function useGame() {
       setPhase('feedback')
 
       if (data.score_ratio >= 0.6) {
+        const revealRequestId = ++revealRequestIdRef.current
+        const answeredQuestionIndex = questionIndex
         try {
           const reveal = await revealAnswer(sid)
+          if (!shouldApplyRevealResult({
+            requestId: revealRequestId,
+            latestRequestId: revealRequestIdRef.current,
+            answeredQuestionIndex,
+            currentQuestionIndex: questionIndexRef.current,
+            phase: phaseRef.current,
+          })) {
+            return
+          }
           setRevealData({
             clearImage: reveal.clear_image,
             knowledge: reveal.knowledge,
@@ -245,7 +270,7 @@ export function useGame() {
       setError(err.message || '提交失败，请重试')
       setPhase('playing')
     }
-  }, [])
+  }, [questionIndex])
 
   const requestHint = useCallback(async () => {
     if (hintsRemaining <= 0) return
@@ -274,16 +299,19 @@ export function useGame() {
   }, [])
 
   const goToNext = useCallback(() => {
+    revealRequestIdRef.current += 1
     const sid = sessionRef.current
     loadNextQuestion(sid)
   }, [loadNextQuestion])
 
   const retryGuess = useCallback(() => {
+    revealRequestIdRef.current += 1
     setFeedback(null)
     setPhase('playing')
   }, [])
 
   const skipQuestion = useCallback(() => {
+    revealRequestIdRef.current += 1
     const sid = sessionRef.current
     loadNextQuestion(sid)
   }, [loadNextQuestion])

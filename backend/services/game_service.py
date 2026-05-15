@@ -1,5 +1,6 @@
 import time
 import threading
+import random
 from concurrent.futures import ThreadPoolExecutor
 
 from config import (
@@ -94,6 +95,7 @@ def record_result(session, score, judge_result):
     session.results.append({
         "question_index": session.question_index,
         "keyword": session.current_question["keyword"],
+        "category": session.current_question.get("category", ""),
         "score": score,
         "match": judge_result["match"],
         "score_ratio": judge_result["score_ratio"],
@@ -135,7 +137,20 @@ def generate_question(session):
     from services import llm_service, image_service
 
     diff_config = session.config
-    prompt = build_word_gen_prompt(diff_config, session.used_words)
+    recent_categories = [
+        result.get("category")
+        for result in session.results[-2:]
+        if result.get("category")
+    ]
+    if session.current_question and session.current_question.get("category"):
+        recent_categories.append(session.current_question["category"])
+    recent_categories = recent_categories[-2:]
+    target_category = None
+    category_pool = diff_config.get("category_pool", [])
+    if category_pool:
+        available_categories = [category for category in category_pool if category not in recent_categories]
+        target_category = random.choice(available_categories or category_pool)
+    prompt = build_word_gen_prompt(diff_config, session.used_words, recent_categories, target_category)
 
     retries = 0
     while retries <= MAX_RETRIES:

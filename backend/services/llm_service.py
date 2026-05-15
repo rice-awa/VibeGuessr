@@ -155,7 +155,7 @@ def generate_word(prompt_text):
         {"role": "system", "content": "你是猜词游戏的出题官，只返回JSON格式。"},
         {"role": "user", "content": prompt_text},
     ]
-    return chat_json(messages, temperature=0.8)
+    return chat_json(messages, temperature=1.15)
 
 
 def judge_answer(prompt_text):
