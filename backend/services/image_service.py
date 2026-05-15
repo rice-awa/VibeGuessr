@@ -1,16 +1,54 @@
+import base64
+import binascii
+import re
+
 import requests
 from config import IMAGE_API_BASE_URL, IMAGE_API_KEY, IMAGE_MODEL, IMAGE_SIZE, IMAGE_REQUEST_TIMEOUT, MAX_RETRIES
 
 
+DATA_IMAGE_RE = re.compile(r"data:image/[^;\s]+;base64,[A-Za-z0-9+/=\s]+")
+
+
+def _image_mime_from_bytes(raw):
+    if raw.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if raw.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if raw.startswith(b"GIF87a") or raw.startswith(b"GIF89a"):
+        return "image/gif"
+    if len(raw) >= 12 and raw.startswith(b"RIFF") and raw[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+
+def _decode_image_base64(content):
+    encoded = re.sub(r"\s+", "", content)
+    try:
+        raw = base64.b64decode(encoded, validate=True)
+    except (binascii.Error, ValueError):
+        return None, None
+    return encoded, _image_mime_from_bytes(raw)
+
+
 def _normalize_image_response(content):
-    if not content:
+    if not content or not isinstance(content, str):
         return None
     content = content.strip()
     if content.startswith(("http://", "https://")):
         return content
-    if content.startswith("data:"):
+    if content.startswith("data:image/"):
         return content
-    return f"data:image/png;base64,{content}"
+    if content.startswith("data:"):
+        return None
+
+    data_image_match = DATA_IMAGE_RE.search(content)
+    if data_image_match:
+        return data_image_match.group(0)
+
+    encoded, mime_type = _decode_image_base64(content)
+    if not mime_type:
+        return None
+    return f"data:{mime_type};base64,{encoded}"
 
 
 def _extract_image_content(data):

@@ -66,7 +66,8 @@ function Game() {
   } = useGame()
 
   const [answer, setAnswer] = useState('')
-  const [imageLoaded, setImageLoaded] = useState(false)
+  const [loadedImageSrc, setLoadedImageSrc] = useState('')
+  const [failedImageSrc, setFailedImageSrc] = useState('')
   const inputRef = useRef(null)
   const hasStarted = useRef(false)
 
@@ -96,7 +97,6 @@ function Game() {
       startTimer()
       queueMicrotask(() => {
         setAnswer('')
-        setImageLoaded(false)
       })
       inputRef.current?.focus()
     } else if (phase === 'judging' || phase === 'feedback') {
@@ -171,9 +171,11 @@ function Game() {
   const presentation = getQuestionPresentation({
     image,
     imageMode,
+    imageLoadFailed: Boolean(image && failedImageSrc === image),
     fallbackHint,
     category,
   })
+  const imageLoaded = Boolean(presentation.src && loadedImageSrc === presentation.src)
   const showPrimer = questionIndex === 1 && (phase === 'playing' || phase === 'partial')
 
   return (
@@ -241,7 +243,8 @@ function Game() {
                 className={`gm-image ${imageLoaded ? 'gm-image-loaded' : ''}`}
                 src={presentation.src}
                 alt="猜猜这是什么"
-                onLoad={() => setImageLoaded(true)}
+                onLoad={() => setLoadedImageSrc(presentation.src)}
+                onError={() => setFailedImageSrc(presentation.src)}
               />
               {!imageLoaded && (
                 <div className="gm-image-skeleton">

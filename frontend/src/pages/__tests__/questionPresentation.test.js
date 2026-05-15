@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { getQuestionPresentation } from '../questionPresentation.js'
+import { getQuestionPresentation, isDisplayableImageSource } from '../questionPresentation.js'
 
 test('uses image mode when a generated image is available', () => {
   const presentation = getQuestionPresentation({
@@ -44,4 +44,37 @@ test('shows a partial state when the word is ready but the image is not', () => 
   assert.equal(presentation.src, null)
   assert.equal(presentation.badge, '动物')
   assert.equal(presentation.notice, '关键词已就绪，图片还在生成中')
+})
+
+test('treats non-image strings as text mode instead of image mode', () => {
+  const presentation = getQuestionPresentation({
+    image: 'I could not generate an image for this prompt.',
+    category: '动物',
+    imageMode: 'image',
+    fallbackHint: '它常见于家中，行动很轻。',
+  })
+
+  assert.equal(presentation.mode, 'text')
+  assert.equal(presentation.src, null)
+  assert.equal(presentation.primaryHint, '它常见于家中，行动很轻。')
+})
+
+test('falls back to text mode after browser image loading fails', () => {
+  const presentation = getQuestionPresentation({
+    image: 'https://example.com/broken.png',
+    category: '动物',
+    imageMode: 'image',
+    fallbackHint: '它常见于家中，行动很轻。',
+    imageLoadFailed: true,
+  })
+
+  assert.equal(presentation.mode, 'text')
+  assert.equal(presentation.src, null)
+})
+
+test('identifies displayable image source formats', () => {
+  assert.equal(isDisplayableImageSource('data:image/png;base64,abc123'), true)
+  assert.equal(isDisplayableImageSource('https://example.com/image.png'), true)
+  assert.equal(isDisplayableImageSource('/assets/image.png'), true)
+  assert.equal(isDisplayableImageSource('plain text'), false)
 })
