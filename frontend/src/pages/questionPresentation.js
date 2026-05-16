@@ -4,7 +4,14 @@ export function isDisplayableImageSource(image) {
   return src.startsWith('data:image/') || src.startsWith('http://') || src.startsWith('https://') || src.startsWith('/')
 }
 
-export function getQuestionPresentation({ image, category, imageMode, fallbackHint, imageLoadFailed = false }) {
+export function getQuestionPresentation({
+  image,
+  category,
+  imageMode,
+  fallbackHint,
+  waitingPrompt,
+  imageLoadFailed = false,
+}) {
   const hasImage = isDisplayableImageSource(image) && !imageLoadFailed
   const mode = hasImage && imageMode !== 'text' ? 'image' : imageMode === 'partial' ? 'partial' : 'text'
 
@@ -23,7 +30,7 @@ export function getQuestionPresentation({ image, category, imageMode, fallbackHi
       mode,
       src: null,
       badge: category || '题目已就绪',
-      primaryHint: fallbackHint || '关键词已就绪，图片还在生成中。',
+      primaryHint: waitingPrompt || '关键词已就绪，图片还在生成中。',
       notice: '关键词已就绪，图片还在生成中',
     }
   }

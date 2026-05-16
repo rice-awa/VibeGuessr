@@ -167,6 +167,7 @@ def generate_question(session):
             word_data["visual_desc"],
             diff_config["blur_prompt"],
             diff_config["image_strategy"],
+            diff_config["blur_radius"],
         )
     except Exception:
         image_data = None

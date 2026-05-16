@@ -10,6 +10,7 @@ import {
   getResult,
 } from '../services/api'
 import { shouldApplyRevealResult } from './revealState'
+import { getWaitingPrompt } from '../pages/loadingPrompts'
 
 export function useGame() {
   const [phase, setPhase] = useState('idle')
@@ -29,6 +30,7 @@ export function useGame() {
   const [guessesRemaining, setGuessesRemaining] = useState(3)
   const [hints, setHints] = useState([])
   const [partialReady, setPartialReady] = useState(false)
+  const [waitingPromptIndex, setWaitingPromptIndex] = useState(0)
 
   const [totalScore, setTotalScore] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -51,6 +53,16 @@ export function useGame() {
   useEffect(() => {
     questionIndexRef.current = questionIndex
   }, [questionIndex])
+
+  useEffect(() => {
+    if (phase !== 'partial') return undefined
+
+    const timer = window.setInterval(() => {
+      setWaitingPromptIndex(prev => prev + 1)
+    }, 2400)
+
+    return () => window.clearInterval(timer)
+  }, [phase])
 
   const cleanupStream = useCallback(() => {
     if (streamCancelRef.current) {
@@ -89,6 +101,7 @@ export function useGame() {
       if (shouldUseStreamFallback({ preloaded: data.preloaded })) {
         setPhase('partial')
         setLoadingText('关键词已就绪，图片还在生成中...')
+        setWaitingPromptIndex(0)
         const cancel = streamNextQuestion(sid, {
           onWordReady: (payload) => {
             setQuestionIndex(payload.question_index)
@@ -97,7 +110,7 @@ export function useGame() {
             setTimeLimit(payload.time_limit || 60)
             setHintsRemaining(payload.hints_remaining || 0)
             setImageMode('partial')
-            setFallbackHint('先根据分类判断，图片马上补齐。')
+            setFallbackHint('')
             setPartialReady(true)
             setPhase('partial')
           },
@@ -175,6 +188,7 @@ export function useGame() {
       setTotalQuestions(data.config.total_questions)
       setPhase('loading')
       setLoadingText('AI 正在出题...')
+      setWaitingPromptIndex(0)
       const cancel = streamNextQuestion(sid, {
         onWordReady: (payload) => {
           setQuestionIndex(payload.question_index)
@@ -329,6 +343,7 @@ export function useGame() {
     phase, sessionId, config, difficulty,
     questionIndex, totalQuestions,
     image, imageMode, imageStatus, fallbackHint, category, timeLimit,
+    waitingPrompt: getWaitingPrompt(waitingPromptIndex),
     hintsRemaining, guessesRemaining, hints,
     totalScore, streak, feedback, revealData,
     loadingText, error,

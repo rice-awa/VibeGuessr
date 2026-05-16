@@ -45,6 +45,7 @@ DIFFICULTY_CONFIG = {
         "base_score": 10,
         "blur_prompt": "slightly blurry, soft focus, the outline is recognizable",
         "image_strategy": "generate a complete image based on the visual description",
+        "blur_radius": 6,
     },
     "medium": {
         "label": "中等",
@@ -55,6 +56,7 @@ DIFFICULTY_CONFIG = {
         "base_score": 20,
         "blur_prompt": "blurry, out of focus, abstract, partial close-up or unusual angle",
         "image_strategy": "generate a partial close-up or non-typical angle",
+        "blur_radius": 10,
     },
     "hard": {
         "label": "困难",
@@ -64,6 +66,7 @@ DIFFICULTY_CONFIG = {
         "base_score": 40,
         "blur_prompt": "very blurry, heavily abstracted, minimal detail, almost unrecognizable",
         "image_strategy": "extract only abstract visual elements",
+        "blur_radius": 14,
     },
 }
 

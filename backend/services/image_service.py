@@ -1,12 +1,15 @@
 import base64
 import binascii
+from io import BytesIO
 import re
 
+from PIL import Image, ImageFilter
 import requests
 from config import IMAGE_API_BASE_URL, IMAGE_API_KEY, IMAGE_MODEL, IMAGE_SIZE, IMAGE_REQUEST_TIMEOUT, MAX_RETRIES
 
 
 DATA_IMAGE_RE = re.compile(r"data:image/[^;\s]+;base64,[A-Za-z0-9+/=\s]+")
+DATA_IMAGE_FULL_RE = re.compile(r"^data:image/[^;\s]+;base64,(?P<data>[A-Za-z0-9+/=\s]+)$")
 
 
 def _image_mime_from_bytes(raw):
@@ -76,6 +79,23 @@ def _extract_image_content(data):
     return None
 
 
+def _blur_data_image(image_data_url, radius):
+    match = DATA_IMAGE_FULL_RE.match(image_data_url or "")
+    if not match:
+        return None
+
+    try:
+        raw = base64.b64decode(re.sub(r"\s+", "", match.group("data")), validate=True)
+        with Image.open(BytesIO(raw)) as image:
+            output = BytesIO()
+            image.convert("RGBA").filter(ImageFilter.GaussianBlur(radius)).save(output, format="PNG")
+    except (binascii.Error, OSError, ValueError):
+        return None
+
+    encoded = base64.b64encode(output.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+
 def _request_image(prompt):
     headers = {
         "Content-Type": "application/json",
@@ -109,14 +129,15 @@ def _request_image(prompt):
     raise last_error
 
 
-def generate_image(visual_desc, blur_prompt, image_strategy):
+def generate_image(visual_desc, blur_prompt, image_strategy, blur_radius):
     prompt = (
         f"{image_strategy}. "
         f"Visual description: {visual_desc}. "
         f"Style: {blur_prompt}. "
         f"Do NOT include any text, letters, or words in the image."
     )
-    return _request_image(prompt)
+    image_data = _request_image(prompt)
+    return _blur_data_image(image_data, blur_radius)
 
 
 def generate_clear_image(visual_desc):

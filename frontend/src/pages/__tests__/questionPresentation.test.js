@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import { getQuestionPresentation, isDisplayableImageSource } from '../questionPresentation.js'
+import { getWaitingPrompt, IMAGE_WAITING_PROMPTS } from '../loadingPrompts.js'
 
 test('uses image mode when a generated image is available', () => {
   const presentation = getQuestionPresentation({
@@ -38,12 +39,19 @@ test('shows a partial state when the word is ready but the image is not', () => 
     category: '动物',
     imageMode: 'partial',
     fallbackHint: '先根据分类和提示作答',
+    waitingPrompt: 'AI 正在把答案藏进雾里...',
   })
 
   assert.equal(presentation.mode, 'partial')
   assert.equal(presentation.src, null)
   assert.equal(presentation.badge, '动物')
+  assert.equal(presentation.primaryHint, 'AI 正在把答案藏进雾里...')
   assert.equal(presentation.notice, '关键词已就绪，图片还在生成中')
+})
+
+test('rotates waiting prompts by index', () => {
+  assert.equal(getWaitingPrompt(0), IMAGE_WAITING_PROMPTS[0])
+  assert.equal(getWaitingPrompt(IMAGE_WAITING_PROMPTS.length), IMAGE_WAITING_PROMPTS[0])
 })
 
 test('treats non-image strings as text mode instead of image mode', () => {

@@ -49,6 +49,20 @@ function GameStatusPanel({ view, onRetry, onBack }) {
   )
 }
 
+function ImageSkeleton({ prompt }) {
+  return (
+    <div className="gm-image-skeleton" aria-live="polite">
+      <div className="gm-image-skeleton-grid" aria-hidden="true">
+        <span className="gm-skeleton-block gm-skeleton-hero" />
+        <span className="gm-skeleton-block" />
+        <span className="gm-skeleton-block" />
+        <span className="gm-skeleton-block gm-skeleton-wide" />
+      </div>
+      {prompt && <p className="gm-image-skeleton-text">{prompt}</p>}
+    </div>
+  )
+}
+
 function Game() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -57,7 +71,7 @@ function Game() {
 
   const {
     phase, questionIndex, totalQuestions,
-    image, imageMode, imageStatus, fallbackHint, category, timeLimit,
+    image, imageMode, imageStatus, fallbackHint, category, timeLimit, waitingPrompt,
     hintsRemaining, guessesRemaining, hints,
     totalScore, streak, feedback, revealData,
     loadingText, error, partialReady,
@@ -173,6 +187,7 @@ function Game() {
     imageMode,
     imageLoadFailed: Boolean(image && failedImageSrc === image),
     fallbackHint,
+    waitingPrompt,
     category,
   })
   const imageLoaded = Boolean(presentation.src && loadedImageSrc === presentation.src)
@@ -237,7 +252,9 @@ function Game() {
         )}
 
         <div className={`gm-image-wrap ${presentation.mode === 'text' ? 'gm-text-mode' : ''}`}>
-          {presentation.src ? (
+          {presentation.mode === 'partial' ? (
+            <ImageSkeleton prompt={presentation.primaryHint} />
+          ) : presentation.src ? (
             <>
               <img
                 className={`gm-image ${imageLoaded ? 'gm-image-loaded' : ''}`}
@@ -246,11 +263,7 @@ function Game() {
                 onLoad={() => setLoadedImageSrc(presentation.src)}
                 onError={() => setFailedImageSrc(presentation.src)}
               />
-              {!imageLoaded && (
-                <div className="gm-image-skeleton">
-                  <div className="gm-image-skeleton-pulse" />
-                </div>
-              )}
+              {!imageLoaded && <ImageSkeleton prompt={waitingPrompt} />}
             </>
           ) : (
             <div className="gm-text-card">
